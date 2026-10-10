@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Danimart</title>
+<meta name="theme-color" content="#0c0c0e">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/styles.css?v=202610102210">
+</head>
+<body>
+
+<div class="splash" id="splash" hidden>
+  <img src="icon.svg" alt="" width="72" height="72">
+  <h1>Danimart</h1>
+  <p id="splashText">Conecta tu cuenta de Google para ver en qué va el proyecto.</p>
+  <button class="btn" id="loginBtn" type="button">Conectar con Google</button>
+</div>
+
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div class="brand"><span class="dot"></span><b>Danimart</b><span class="etapa" id="etapa"></span></div>
+    <nav class="tabs" id="tabs" aria-label="Secciones">
+      <a href="#hoy" data-v="hoy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg><span>Hoy</span></a>
+      <a href="#ruta" data-v="ruta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M6 4h11l-2.5 4L17 12H6"/></svg><span>Ruta</span></a>
+      <a href="#tareas" data-v="tareas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6l2 2 3-4M4 13l2 2 3-4M4 20l2 2 3-4M12 6h8M12 13h8M12 20h8"/></svg><span>Tareas</span><i class="badge" id="badge" hidden></i></a>
+      <a href="#ideas" data-v="ideas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.800 1-2.500A6 6 0 0 0 12 3z"/></svg><span>Ideas</span></a>
+      <a href="#diario" data-v="diario"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19l5-6 4 3 7-9M4 4v16h16"/></svg><span>Diario</span></a>
+      <a href="#mas" data-v="mas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z"/></svg><span>Más</span></a>
+    </nav>
+    <button class="icon-btn" id="refresh" type="button" aria-label="Recargar datos" title="Recargar datos">↻</button>
+  </header>
+  <main id="view"><p class="loading">Cargando el proyecto…</p></main>
+</div>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="js/config.js?v=202610102210"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/sheets-auth.js?v=202610102210"></script>
+<script src="js/app.js?v=202610102210"></script>
+</body>
+</html>
