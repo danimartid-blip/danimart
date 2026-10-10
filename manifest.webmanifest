@@ -1,11 +1,19 @@
 {
+  "id": "/danimart/",
   "name": "Danimart",
   "short_name": "Danimart",
-  "start_url": "index.html",
+  "description": "Tablero del proyecto Danimart",
+  "lang": "es",
+  "start_url": "/danimart/index.html",
+  "scope": "/danimart/",
   "display": "standalone",
   "background_color": "#0c0c0e",
   "theme_color": "#0c0c0e",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "icons/favicon-32.png", "sizes": "32x32", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
