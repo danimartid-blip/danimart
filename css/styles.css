@@ -201,6 +201,16 @@ a.stat:hover { border-color: var(--ink-soft); }
 @media (prefers-color-scheme: light) { .entry .kind { color: var(--ink-soft); } }
 @media (max-width: 520px) { .entry { grid-template-columns: 1fr; gap: 0.1rem; } }
 
+/* Apuntes */
+.notes { display: flex; flex-direction: column; gap: 0.5rem; }
+.note { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+.note[open] { border-color: var(--accent); }
+.note summary { list-style: none; cursor: pointer; padding: 0.9rem 1rem; }
+.note summary::-webkit-details-marker { display: none; }
+.note summary > span { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem; flex-wrap: wrap; }
+.note-body { padding: 0 1rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--ink-soft); font-size: 0.9rem; max-width: 68ch; }
+.note-body ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+
 /* Más */
 .machine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
 .cog { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }

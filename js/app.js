@@ -9,14 +9,15 @@
     ideas: { hoja: "bitacora_ideas", cols: ["id", "titulo", "detalle", "area", "estado", "creada"] },
     registro: { hoja: "bitacora_registro", cols: ["id", "fecha", "tipo", "titulo", "texto"] },
     apoyo: { hoja: "bitacora_apoyo", cols: ["id", "orden", "titulo", "nota", "url"] },
+    apuntes: { hoja: "bitacora_apuntes", cols: ["id", "fecha", "tema", "titulo", "texto"] },
   };
-  const FECHAS = { metas: ["objetivo", "lograda"], tareas: ["creada", "vence", "hecha"], ideas: ["creada"], registro: ["fecha"], apoyo: [] };
+  const FECHAS = { metas: ["objetivo", "lograda"], tareas: ["creada", "vence", "hecha"], ideas: ["creada"], registro: ["fecha"], apoyo: [], apuntes: ["fecha"] };
   const VISTAS = ["hoy", "ruta", "tareas", "ideas", "diario", "mas"];
   const MES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const DIA = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
   const MESL = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-  const S = { estado: {}, metas: [], tareas: [], ideas: [], registro: [], apoyo: [], vista: "hoy", filtro: "Daniel", area: "todas", abierta: null, metaAbierta: null, animar: true, cargado: false };
+  const S = { estado: {}, metas: [], tareas: [], ideas: [], registro: [], apoyo: [], apuntes: [], tema: "todos", vista: "hoy", filtro: "Daniel", area: "todas", abierta: null, metaAbierta: null, animar: true, cargado: false };
   try { S.filtro = localStorage.getItem("dm_filtro") || "Daniel"; } catch { /* sin almacenamiento */ }
 
   const $ = (id) => document.getElementById(id);
@@ -51,7 +52,7 @@
     const nombres = Object.keys(TAB);
     const res = await Promise.all([
       api().readRange("bitacora_estado!A2:B40"),
-      ...nombres.map((n) => api().readRange(`${TAB[n].hoja}!A2:${letra(TAB[n].cols.length)}`)),
+      ...nombres.map((n) => { const p = api().readRange(`${TAB[n].hoja}!A2:${letra(TAB[n].cols.length)}`); return n === "apuntes" ? p.catch(() => []) : p; }),
     ]);
     S.estado = {};
     for (const r of res[0]) if (r[0]) S.estado[String(r[0]).trim()] = String(r[1] ?? "").trim();
@@ -235,10 +236,33 @@
       `<div class="log">${log.map(entradaHTML).join("") || `<div class="empty">Todavía no hay registros.</div>`}</div>`;
   }
 
+  /** Texto de un apunte: una línea por párrafo, y las que parten con "- " van como lista. */
+  function textoHTML(t) {
+    let out = "", lista = false;
+    for (const l of String(t || "").split(/\r?\n/)) {
+      const s = l.trim(); if (!s) continue;
+      const item = /^[-•]\s+/.test(s);
+      if (item && !lista) { out += "<ul>"; lista = true; }
+      if (!item && lista) { out += "</ul>"; lista = false; }
+      out += item ? `<li>${esc(s.replace(/^[-•]\s+/, ""))}</li>` : `<p>${esc(s)}</p>`;
+    }
+    return out + (lista ? "</ul>" : "");
+  }
+  function apuntesHTML() {
+    const temas = ["todos", ...new Set(S.apuntes.map((n) => n.tema).filter(Boolean))];
+    if (!temas.includes(S.tema)) S.tema = "todos";
+    const vis = (S.tema === "todos" ? S.apuntes : S.apuntes.filter((n) => n.tema === S.tema)).slice().sort((x, y) => (y.fecha + y.id < x.fecha + x.id ? -1 : 1));
+    return `<div class="sec"><div class="sec-head"><h2>Apuntes</h2><span>Lo que hemos aprendido, para volver a leerlo</span></div>` +
+      `<div class="filters">${temas.map((t) => `<button type="button" data-a="tema" data-id="${esc(t)}" aria-pressed="${S.tema === t}">${esc(t)}</button>`).join("")}</div>` +
+      `<div class="notes">${vis.map((n) => `<details class="note"><summary><span><b>${esc(n.titulo)}</b><span class="chip">${esc(n.tema || "apunte")}${isDate(n.fecha) ? " · " + esc(fmt(n.fecha)) : ""}</span></span></summary><div class="note-body">${textoHTML(n.texto)}</div></details>`).join("") || `<div class="empty">Todavía no hay apuntes.</div>`}</div>` +
+      `<form class="card sec" data-f="apunte"><div class="row"><label class="f">Título<input id="p-titulo" maxlength="120" required></label><label class="f">Tema<input id="p-tema" maxlength="30" placeholder="sociedad, patente, producto…"></label></div><label class="f">Apunte<textarea id="p-texto" maxlength="3000" required placeholder="Una idea por línea. Parte la línea con un guion para hacer una lista."></textarea></label><div class="actions"><button class="solid" type="submit">Guardar apunte</button></div></form></div>`;
+  }
+
   function vMas() {
     const links = S.apoyo.slice().sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0)).filter((l) => /^https:\/\//.test(l.url));
     const cog = (yo, who, b, x) => `<div class="cog${yo ? " you" : ""}"><span class="who">${who}</span><b>${b}</b><span class="x">${x}</span></div>`;
-    return `<div><span class="eyebrow">Material de apoyo</span><h1 class="h1">Cómo funciona la máquina</h1><p class="lead">Quién hace qué en cada venta. Lo marcado en amarillo es lo tuyo.</p></div>` +
+    return `<div><span class="eyebrow">Material de apoyo</span><h1 class="h1">Más</h1></div>` + apuntesHTML() +
+      `<div class="sec"><div class="sec-head"><h2>Cómo funciona la máquina</h2><span>Lo marcado en amarillo es lo tuyo</span></div></div>` +
       `<div class="machine">${cog(0, "Agente productos", "Elige qué vender", "Mide demanda, calcula margen y dice cuánto comprar.")}${cog(1, "Tú", "Compras y recibes", "Apruebas la compra, recibes la caja y revisas el stock.")}${cog(0, "Agente Mercado Libre", "Publica y atiende", "Ficha, precio, preguntas y cuidado de la reputación.")}${cog(1, "Tú", "Embalas y despachas", "Lo único físico. La meta es que sea lo único manual.")}${cog(0, "Agente tributario", "Deja listo el F29", "IVA, boletas y renta preparados para que solo confirmes.")}${cog(0, "Agente automatización", "Quita trabajo manual", "Convierte cada tarea repetida en un flujo que corre solo.")}${cog(0, "Hoja de Google", "Guarda los datos", "Productos, compras, ventas y decisiones, una fila por registro.")}${cog(1, "Tú", "Apruebas lo irreversible", "Firmar, pagar y declarar siempre pasan por ti.")}</div>` +
       `<div class="sec"><div class="sec-head"><h2>Accesos</h2></div><div class="links">${links.map((l) => `<a class="link" href="${esc(l.url)}" target="_blank" rel="noopener"><b>${esc(l.titulo)} ↗</b><span>${esc(l.nota)}</span></a>`).join("") || `<div class="empty">Sin accesos guardados.</div>`}</div>` +
       `<form class="card sec" data-f="link"><div class="row"><label class="f">Nombre<input id="l-titulo" maxlength="60" required></label><label class="f">Dirección (https)<input id="l-url" type="url" placeholder="https://" required></label></div><div class="add"><input id="l-nota" placeholder="Para qué sirve (opcional)" maxlength="140" aria-label="Nota"><button class="solid" type="submit">Agregar acceso</button></div></form></div>` +
@@ -284,6 +308,7 @@
   const ACC = {
     filtro(id) { S.filtro = id; S.abierta = null; try { localStorage.setItem("dm_filtro", id); } catch { /* da igual */ } render(); },
     area(id) { S.area = id; render(); },
+    tema(id) { S.tema = id; render(); },
     abrir(id) { S.abierta = S.abierta === id ? null : id; render(); },
     meta(id) { S.metaAbierta = S.metaAbierta === id ? null : id; render(); },
     tog(id) {
@@ -332,6 +357,11 @@
       const titulo = $("n-titulo").value.trim(); if (!titulo) return;
       const e = { id: nuevoId("b"), fecha: hoy(), tipo: $("n-tipo").value, titulo, texto: $("n-texto").value.trim() };
       mutar(() => { S.registro.push(e); }, () => agregar("registro", e), "Anotado");
+    },
+    apunte() {
+      const titulo = $("p-titulo").value.trim(), texto = $("p-texto").value.trim(); if (!titulo || !texto) return;
+      const n = { id: nuevoId("n"), fecha: hoy(), tema: $("p-tema").value.trim().toLowerCase() || "apunte", titulo, texto };
+      mutar(() => { S.apuntes.push(n); }, () => agregar("apuntes", n), "Apunte guardado");
     },
     link() {
       const titulo = $("l-titulo").value.trim(), url = $("l-url").value.trim();
